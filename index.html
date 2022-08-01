@@ -12,8 +12,10 @@
 
 <br />
 <canvas id="myCanvas" width="480" height="320"></canvas>
+<button onclick="startGame()">Start</button>
 
 <script>
+  var interval;
   var canvas = document.getElementById("myCanvas");
   var ctx = canvas.getContext("2d");
   let x = canvas.width/2;
@@ -21,42 +23,120 @@
   let dx = 2;
   let dy = -2;
   let dt = 10;
-  ballRadius = 10;
-  ballColors = ["#0095DD", "#95DD00", "#DD0095", "#DDDD95"];
-  ballColor = ballColors[0];
- 
+  let colors = ["#0095DD", "#95DD00", "#DD0095", "#DDDD95"];
+  let isGameInProgress = false;
+  let isGameEnding = false;
+
+  let ballRadius = 10;
+  let ballColor = colors[0];
+
+  var paddleHeight = 10;
+  var paddleWidth = 75;
+  var paddleX = (canvas.width - paddleWidth) / 2.0;
+  var paddleColor = colors[2];
+  var rightPressed = false;
+  var leftPressed = false;
+  document.addEventListener("keydown", keyDownHandler, false);
+  document.addEventListener("keyup", keyUpHandler, false);
+
+  function keyDownHandler(e) {
+    if (!isGameInProgress) {
+      startGame();
+    }
+    else if (e.key == "Right" || e.key == "ArrowRight") {
+      rightPressed = true;
+    }
+    else if (e.key == "Left" || e.key == "ArrowLeft") {
+      leftPressed = true;
+    }
+  }
+
+  function keyUpHandler(e) {
+    if (e.key == "Right" || e.key == "ArrowRight") {
+      rightPressed = false;
+    }
+    else if (e.key == "Left" || e.key == "ArrowLeft") {
+      leftPressed = false;
+    }
+  }
+
   // Function to generate random number 
   function randomNumber(min, max) { 
       return Math.floor(Math.random() * (max - min) + min);
   }
 
   function drawBall() {
-  ctx.beginPath();
+    ctx.beginPath();
     ctx.arc(x, y, ballRadius, 0, Math.PI*2);
     ctx.fillStyle = ballColor;
     ctx.fill();
     ctx.closePath();
   }
 
+  function drawPaddle() {
+    ctx.beginPath();
+    ctx.rect(paddleX, canvas.height-paddleHeight, paddleWidth, paddleHeight);
+    ctx.fillStyle = paddleColor;
+    ctx.fill();
+    ctx.closePath();
+  }
+
+  function gameOver() {
+    if (!isGameEnding) {
+      isGameEnding = true;
+      setTimeout(endGame, 1000);
+    }
+  }
+
+  function endGame() {
+    alert("GAME OVER");
+    document.location.reload();
+    clearInterval(interval); // Needed for Chrome to end game
+    isGameInProgress = false;
+  }
+
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawBall();
+    drawPaddle();
 
-    if(x + dx > canvas.width-ballRadius || x + dx < ballRadius) {
+    if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
       dx = -dx;
-      ballColor = ballColors[randomNumber(0, ballColors.length)];
     }
 
-    if(y + dy > canvas.height-ballRadius || y + dy < ballRadius) {
+    if(y + dy < ballRadius) {
       dy = -dy;
-      ballColor = ballColors[randomNumber(0, ballColors.length)];
+    } else if(y + dy > canvas.height - ballRadius - paddleHeight) {
+      if(x > paddleX && x < paddleX + paddleWidth) {
+        if (!isGameEnding) dy = -dy;
+      }
+      else {
+        gameOver();
+      }
     }
 
+    if (rightPressed) {
+      paddleX += 7;
+      if (paddleX + paddleWidth > canvas.width) {
+        paddleX = canvas.width - paddleWidth;
+      }
+    }
+    else if (leftPressed) {
+      paddleX -= 7;
+      if (paddleX < 0) {
+        paddleX = 0;
+      }
+    }
     x += dx;
     y += dy;
   }
 
-  setInterval(draw, dt);
+  function startGame() {
+    isGameInProgress = true;
+    interval = setInterval(draw, dt);
+  }
+
+  draw();
 </script>
 
 </body>
