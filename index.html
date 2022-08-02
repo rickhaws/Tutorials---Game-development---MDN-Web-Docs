@@ -26,7 +26,7 @@
   let isGameInProgress = false;
   let isGameEnding = false;
   let score = 0;
-  let speedUp = 0.01;
+  let speedUp = 0.2;
   let brickCount = 0;
 
   let ballRadius = 10;
@@ -175,8 +175,12 @@
 
   function checkLevelUp() {
     if (brickCount === 0) {
+      score += 10;
       resetBricks();
-    }
+      // Speed up
+      dx *= (1.0 + speedUp);
+      dy *= (1.0 + speedUp);
+  }
   }
 
   function gameOver() {
@@ -212,9 +216,6 @@
     } else if(y + dy > canvas.height - ballRadius - paddleHeight) {
       if(x > paddleX && x < paddleX + paddleWidth) {
         if (!isGameEnding) dy = -dy;
-        // Speed up
-        dx *= (1.0 + speedUp);
-        dy *= (1.0 + speedUp);
       }
       else {
         gameOver();
